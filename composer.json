@@ -1,0 +1,22 @@
+{
+  "name": "renjinsk/fh-discord-handler",
+  "description": "description",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Kostas Rentzikas",
+      "email": "k.rentzikas@ferryhopper.com"
+    }
+  ],
+  "require": {
+    "php": ">7.2",
+    "lefuturiste/monolog-discord-handler": ">=0.3.1",
+    "symfony/framework-bundle": "^5.2|^4.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "Renji\\": "src"
+    }
+  }
+}
