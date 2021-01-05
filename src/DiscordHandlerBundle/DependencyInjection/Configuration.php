@@ -23,9 +23,9 @@ class Configuration implements ConfigurationInterface
                     ->children()
                         ->scalarNode('webhook')->isRequired()->end()
                         ->scalarNode('name')->isRequired()->end()
-                        ->scalarNode('subname')->defaultValue(':facepalm:')->end()
+                        ->scalarNode('subName')->defaultValue(':facepalm:')->end()
                         ->scalarNode('level')->defaultValue('notice')->end()
-                        ->booleanNode('buble')->defaultValue(true)->end()
+                        ->booleanNode('bubble')->defaultValue(true)->end()
                     ->end();
 
         return $treeBuilder;
