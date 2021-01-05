@@ -1,13 +1,13 @@
 <?php
 
-namespace Renji\FHDiscordHandlerBundle\Services;
+namespace RenjiNSK\DiscordHandlerBundle\Services;
 
 use DiscordHandler\DiscordHandler;
 
 /**
  * Class DiscordMonologHandlerService
  *
- * @package Renji\FHDiscordHandlerBundle\Services
+ * @package RenjiNSK\DiscordHandlerBundle\Services
  * @author  Kostas Rentzikas <krentzikas@ferryhopper.com>
  */
 class DiscordMonologHandlerService extends DiscordHandler

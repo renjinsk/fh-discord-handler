@@ -1,0 +1,8 @@
+services:
+  RenjiNSK\DiscordHandlerBundle\Services\DiscordMonologHandlerService:
+    arguments:
+      - '%renji_discord_handler.webhook_url%'
+      - '%renji_discord_handler.name%'
+      - '%renji_discord_handler.subname%'
+      - '%renji_discord_handler.level%'
+      - '%renji_discord_handler.buble%'
