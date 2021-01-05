@@ -1,8 +1,12 @@
 services:
   RenjiNSK\DiscordHandlerBundle\Services\DiscordMonologHandlerService:
     arguments:
-      - '%renji_discord_handler.webhook_url%'
-      - '%renji_discord_handler.name%'
-      - '%renji_discord_handler.subname%'
-      - '%renji_discord_handler.level%'
-      - '%renji_discord_handler.buble%'
+      - 'webhook_url'
+      - 'name'
+      - 'subName'
+      - 'level'
+      - 'bubble'
+    calls:
+      - method: setEnvironment
+        arguments:
+          - '%kernel.environment%'

@@ -13,22 +13,21 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  */
 class Configuration implements ConfigurationInterface
 {
+    /**
+     * @inheritDoc
+     */
     public function getConfigTreeBuilder()
     {
         $treeBuilder = new TreeBuilder('discord_handler');
-        $rootNode = $treeBuilder->getRootNode();
+        $treeBuilder->getRootNode()
+                    ->children()
+                        ->scalarNode('webhook')->isRequired()->end()
+                        ->scalarNode('name')->isRequired()->end()
+                        ->scalarNode('subname')->defaultValue(':facepalm:')->end()
+                        ->scalarNode('level')->defaultValue('notice')->end()
+                        ->booleanNode('buble')->defaultValue(true)->end()
+                    ->end();
 
-        $rootNode
-            ->children()
-                ->arrayNode('options')->children()
-                    ->scalarNode('webhook')->isRequired()->end()
-                    ->scalarNode('name')->isRequired()->end()
-                    ->scalarNode('subname')->defaultValue(':facepalm:')->end()
-                    ->scalarNode('level')->defaultValue('notice')->end()
-                    ->booleanNode('buble')->defaultValue(true)->end()
-                ->end()
-            ->end();
-        
         return $treeBuilder;
     }
 }

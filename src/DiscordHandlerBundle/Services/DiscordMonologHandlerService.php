@@ -3,6 +3,10 @@
 namespace RenjiNSK\DiscordHandlerBundle\Services;
 
 use DiscordHandler\DiscordHandler;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Routing\Exception\MethodNotAllowedException;
+use Symfony\Component\Routing\Exception\RouteNotFoundException;
 
 /**
  * Class DiscordMonologHandlerService
@@ -12,10 +16,105 @@ use DiscordHandler\DiscordHandler;
  */
 class DiscordMonologHandlerService extends DiscordHandler
 {
+    public const IGNORED_EXCEPTION_CLASSES = [
+        MethodNotAllowedHttpException::class,
+        MethodNotAllowedException::class,
+        RouteNotFoundException::class,
+        NotFoundHttpException::class,
+    ];
+
+    /** @var string */
+    protected $name;
+    /** @var string */
+    protected $environment;
+
+    /**
+     * DiscordMonologHandlerService constructor.
+     *
+     * @param string $webhook
+     * @param string $name
+     * @param string $subName
+     * @param int    $level
+     * @param bool   $bubble
+     */
     public function __construct(
         string $webhook,
-        string $name
-    ){
+        string $name,
+        string $subName,
+        int $level,
+        bool $bubble
+    ) {
+        parent::__construct($webhook, $name, $subName, $level, $bubble);
+        $this->name = $name;
+        $this->config->setEmbedMode(true);
+    }
 
+    /**
+     * @param string $environment
+     *
+     * @return DiscordMonologHandlerService
+     */
+    public function setEnvironment(string $environment): DiscordMonologHandlerService
+    {
+        $this->environment = $environment;
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function handle(array $record): bool
+    {
+        if ($this->level >= $record['level']) {
+            return false;
+        }
+
+        /** @var \Throwable $exceptionInstance */
+        $exceptionInstance = $record['context']['exception'] ?? new \Exception('[DiscordMonologHandler] No exception found');
+        if (\in_array(\get_class($exceptionInstance), self::IGNORED_EXCEPTION_CLASSES, true)) {
+            return false;
+        }
+
+        return parent::handle($record);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function write(array $record): void
+    {
+        $splitMessage = $this->splitMessage($record['message']);
+        $fields       = [];
+        if (\array_key_exists('context', $record)) {
+            foreach ($record['context'] as $index => $item) {
+                if (\is_object($item)) {
+                    continue;
+                }
+                $fields[] = [
+                    'name'  => $index,
+                    'value' => empty($item) ? "-{$item}-" : $item,
+                ];
+            }
+        }
+        $parts = [
+            [
+                'embeds' => [
+                    [
+                        'title'       => "{$record['level_name']} [{$this->name}][{$this->environment}]",
+                        'description' => $splitMessage[0],
+                        'timestamp'   => $record['datetime']->format($this->config->getDatetimeFormat()),
+                        'color'       => $this->levelColors[$record['level']],
+                        'fields'      => $fields,
+                    ],
+                ],
+            ],
+        ];
+
+        foreach ($this->config->getWebHooks() as $webHook) {
+            foreach ($parts as $part) {
+                $this->send($webHook, $part);
+            }
+        }
     }
 }
