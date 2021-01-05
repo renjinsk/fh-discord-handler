@@ -3,10 +3,8 @@
 namespace RenjiNSK\DiscordHandlerBundle\Services;
 
 use DiscordHandler\DiscordHandler;
-use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Routing\Exception\MethodNotAllowedException;
-use Symfony\Component\Routing\Exception\RouteNotFoundException;
+use Symfony\Component\HttpKernel\Exception\{MethodNotAllowedHttpException, NotFoundHttpException};
+use Symfony\Component\Routing\Exception\{MethodNotAllowedException, RouteNotFoundException};
 
 /**
  * Class DiscordMonologHandlerService
@@ -53,6 +51,7 @@ class DiscordMonologHandlerService extends DiscordHandler
      * @param string $environment
      *
      * @return DiscordMonologHandlerService
+     * @noinspection PhpUnused
      */
     public function setEnvironment(string $environment): DiscordMonologHandlerService
     {
@@ -66,13 +65,14 @@ class DiscordMonologHandlerService extends DiscordHandler
      */
     public function handle(array $record): bool
     {
-        if ($this->level >= $record['level']) {
+        if ($this->level > $record['level']) {
             return false;
         }
 
         /** @var \Throwable $exceptionInstance */
         $exceptionInstance = $record['context']['exception'] ?? new \Exception('[DiscordMonologHandler] No exception found');
-        if (\in_array(\get_class($exceptionInstance), self::IGNORED_EXCEPTION_CLASSES, true)) {
+        if (\in_array(\get_class($exceptionInstance), self::IGNORED_EXCEPTION_CLASSES, true)
+        ) {
             return false;
         }
 
@@ -117,4 +117,14 @@ class DiscordMonologHandlerService extends DiscordHandler
             }
         }
     }
+
+    /**
+     * @inheritDoc
+     */
+    protected function send($webHook, $json)
+    {
+        \usleep(250000); // Sleep for 1/4 sec to avoid rate limit
+        parent::send($webHook, $json);
+    }
+
 }

@@ -61,6 +61,7 @@ class DiscordHandlerExtension extends Extension
             case 'emergency':
                 return Logger::EMERGENCY;
             case 'info':
+                return Logger::INFO;
             default:
                 return Logger::INFO;
         }
