@@ -84,15 +84,16 @@ class DiscordMonologHandlerService extends DiscordHandler
      */
     protected function write(array $record): void
     {
-        $splitMessage = $this->splitMessage($record['message']);
-        $fields       = [];
+        $message = $record['message'];
+        $fields  = [];
         if (\array_key_exists('context', $record)) {
             foreach ($record['context'] as $index => $item) {
-                if (\is_object($item)) {
+                if (\is_object($item) || \is_array($item)) {
                     continue;
                 }
+                $message  = \str_replace('{'.$index.'}', $item, $message);
                 $fields[] = [
-                    'name'  => $index,
+                    'name'  => "{$index}:",
                     'value' => empty($item) ? "-{$item}-" : $item,
                 ];
             }
@@ -102,7 +103,7 @@ class DiscordMonologHandlerService extends DiscordHandler
                 'embeds' => [
                     [
                         'title'       => "{$record['level_name']} [{$this->name}][{$this->environment}]",
-                        'description' => $splitMessage[0],
+                        'description' => $message,
                         'timestamp'   => $record['datetime']->format($this->config->getDatetimeFormat()),
                         'color'       => $this->levelColors[$record['level']],
                         'fields'      => $fields,
