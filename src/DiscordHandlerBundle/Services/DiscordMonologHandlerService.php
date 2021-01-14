@@ -124,8 +124,8 @@ class DiscordMonologHandlerService extends DiscordHandler
      */
     protected function send($webHook, $json)
     {
-        \usleep(250000); // Sleep for 1/4 sec to avoid rate limit
         parent::send($webHook, $json);
+        \usleep(500000); // Sleep for 1/2 sec to avoid rate limit
     }
 
 }
