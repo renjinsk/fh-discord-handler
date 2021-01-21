@@ -89,12 +89,13 @@ class DiscordMonologHandlerService extends DiscordHandler
         if (\array_key_exists('context', $record)) {
             foreach ($record['context'] as $index => $item) {
                 if (\is_object($item) || \is_array($item)) {
-                    $fields[] = [
-                        'name'  => "{$index}:",
-                        'value' => empty($item) ? "-{$item}-" : $item,
-                    ];
+                    continue;
                 }
-                $message = \str_replace('{'.$index.'}', "`$item`", $message);
+                $message  = \str_replace('{'.$index.'}', $item, $message);
+                $fields[] = [
+                    'name'  => "{$index}:",
+                    'value' => empty($item) ? "-{$item}-" : $item,
+                ];
             }
         }
         $parts = [
