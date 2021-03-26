@@ -89,7 +89,7 @@ class DiscordMonologHandlerService extends DiscordHandler
         if (\array_key_exists('context', $record)) {
             foreach ($record['context'] as $index => $item) {
                 if (\is_object($item) || \is_array($item)) {
-                    continue;
+                    $item = \json_encode($item);
                 }
                 $message  = \str_replace('{'.$index.'}', $item, $message);
                 $fields[] = [
@@ -124,8 +124,14 @@ class DiscordMonologHandlerService extends DiscordHandler
      */
     protected function send($webHook, $json)
     {
-        parent::send($webHook, $json);
-        \usleep(500000); // Sleep for 1/2 sec to avoid rate limit
+        try {
+            parent::send($webHook, $json);
+            \usleep(500000); // Sleep for 1/2 sec to avoid rate limit
+        } catch (\Throwable $exception) {
+            // There's a case where we get an error from discord.
+            // So catch it, and do nothing
+            // Causing not to report the error to Discord
+        }
     }
 
 }

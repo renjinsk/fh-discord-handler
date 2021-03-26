@@ -11,6 +11,7 @@
   ],
   "require": {
     "php": ">7.2",
+    "ext-json": "*",
     "lefuturiste/monolog-discord-handler": ">=0.3.1",
     "symfony/framework-bundle": "^5.2|^4.4"
   },
