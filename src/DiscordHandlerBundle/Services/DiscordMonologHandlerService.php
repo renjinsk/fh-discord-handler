@@ -126,7 +126,7 @@ class DiscordMonologHandlerService extends DiscordHandler
     {
         try {
             parent::send($webHook, $json);
-            \usleep(500000); // Sleep for 1/2 sec to avoid rate limit
+            \usleep(250000); // Sleep for 1/2 sec to avoid rate limit
         } catch (\Throwable $exception) {
             // There's a case where we get an error from discord.
             // So catch it, and do nothing
