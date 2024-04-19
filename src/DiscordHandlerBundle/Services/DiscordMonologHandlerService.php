@@ -5,6 +5,7 @@ namespace RenjiNSK\DiscordHandlerBundle\Services;
 use DiscordHandler\DiscordHandler;
 use Symfony\Component\HttpKernel\Exception\{MethodNotAllowedHttpException, NotFoundHttpException};
 use Symfony\Component\Routing\Exception\{MethodNotAllowedException, RouteNotFoundException};
+use Monolog\{Level, LogRecord};
 
 /**
  * Class DiscordMonologHandlerService
@@ -21,27 +22,19 @@ class DiscordMonologHandlerService extends DiscordHandler
         NotFoundHttpException::class,
     ];
 
-    /** @var string */
-    protected $name;
-    /** @var string */
-    protected $environment;
+    protected string $name;
+    protected string $environment;
 
-    /**
-     * DiscordMonologHandlerService constructor.
-     *
-     * @param string $webhook
-     * @param string $name
-     * @param string $subName
-     * @param int    $level
-     * @param bool   $bubble
-     */
     public function __construct(
-        string $webhook,
+        string|array $webhook,
         string $name,
         string $subName,
-        int $level,
+        int|Level $level,
         bool $bubble
     ) {
+        if ( ! $level instanceof Level) {
+            $level = Level::fromValue($level);
+        }
         parent::__construct($webhook, $name, $subName, $level, $bubble);
         $this->name = $name;
         $this->config->setEmbedMode(true);
@@ -63,15 +56,16 @@ class DiscordMonologHandlerService extends DiscordHandler
     /**
      * @inheritDoc
      */
-    public function handle(array $record): bool
+    public function handle(LogRecord $record): bool
     {
-        if ($this->level > $record['level']) {
+        if ($this->level > $record->level) {
             return false;
         }
 
         /** @var \Throwable $exceptionInstance */
-        $exceptionInstance = $record['context']['exception'] ?? new \Exception('[DiscordMonologHandler] No exception found');
-        if (\in_array(\get_class($exceptionInstance), self::IGNORED_EXCEPTION_CLASSES, true)
+        $exceptionInstance = $record->context['exception'] ??
+            new \Exception('[DiscordMonologHandler] No exception found');
+        if (\in_array($exceptionInstance::class, self::IGNORED_EXCEPTION_CLASSES, true)
         ) {
             return false;
         }
@@ -82,21 +76,19 @@ class DiscordMonologHandlerService extends DiscordHandler
     /**
      * @inheritDoc
      */
-    protected function write(array $record): void
+    protected function write(LogRecord $record): void
     {
-        $message = $record['message'];
+        $message = $record->message;
         $fields  = [];
-        if (\array_key_exists('context', $record)) {
-            foreach ($record['context'] as $index => $item) {
-                if (\is_object($item) || \is_array($item)) {
-                    $item = \json_encode($item);
-                }
-                $message  = \str_replace('{'.$index.'}', $item, $message);
-                $fields[] = [
-                    'name'  => "{$index}:",
-                    'value' => empty($item) ? "-{$item}-" : $item,
-                ];
+        foreach ($record->context ?? [] as $index => $item) {
+            if (\is_object($item) || \is_array($item)) {
+                $item = \json_encode($item);
             }
+            $message  = \str_replace('{'.$index.'}', $item, $message);
+            $fields[] = [
+                'name'  => "{$index}:",
+                'value' => empty($item) ? "-{$item}-" : $item,
+            ];
         }
         $parts = [
             [
@@ -105,7 +97,7 @@ class DiscordMonologHandlerService extends DiscordHandler
                         'title'       => "{$record['level_name']} [{$this->name}][{$this->environment}]",
                         'description' => $message,
                         'timestamp'   => $record['datetime']->format($this->config->getDatetimeFormat()),
-                        'color'       => $this->levelColors[$record['level']],
+                        'color'       => $this->getColorForLevel($record->level),
                         'fields'      => $fields,
                     ],
                 ],
@@ -122,12 +114,12 @@ class DiscordMonologHandlerService extends DiscordHandler
     /**
      * @inheritDoc
      */
-    protected function send($webHook, $json)
+    protected function send(string $webHook, array $json): void
     {
         try {
             parent::send($webHook, $json);
             \usleep(500000); // Sleep for 1/2 sec to avoid rate limit
-        } catch (\Throwable $exception) {
+        } catch (\Throwable) {
             // There's a case where we get an error from discord.
             // So catch it, and do nothing
             // Causing not to report the error to Discord
