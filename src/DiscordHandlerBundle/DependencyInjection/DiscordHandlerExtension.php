@@ -2,7 +2,7 @@
 
 namespace RenjiNSK\DiscordHandlerBundle\DependencyInjection;
 
-use Monolog\Logger;
+use Monolog\Level;
 use RenjiNSK\DiscordHandlerBundle\Services\DiscordMonologHandlerService;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -45,25 +45,6 @@ class DiscordHandlerExtension extends Extension
      */
     private function loggingLevelDecider(string $level): int
     {
-        switch (\strtolower($level)) {
-            case 'debug':
-                return Logger::DEBUG;
-            case 'notice':
-                return Logger::NOTICE;
-            case 'warning':
-                return Logger::WARNING;
-            case 'error':
-                return Logger::ERROR;
-            case 'critical':
-                return Logger::CRITICAL;
-            case 'alert':
-                return Logger::ALERT;
-            case 'emergency':
-                return Logger::EMERGENCY;
-            case 'info':
-                return Logger::INFO;
-            default:
-                return Logger::INFO;
-        }
+        return Level::fromName($level)->value;
     }
 }
